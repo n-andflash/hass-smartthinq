@@ -39,6 +39,27 @@ FAN_MODES = {
     'NATURE': 'nature',
     'POWER': 'power',
 }
+FAN_MODES_DUAL = {
+    'R_LOW' : 'Off, Low',
+    'R_MID' : 'Off, Mid',
+    'R_HIGH' : 'Off, High',
+    'L_LOW' : 'Low, Off',
+    'L_MID' : 'Mid, Off',
+    'L_HIGH' : 'High, Off',
+    'L_LOWR_LOW' : 'Low, Low',
+    'L_LOWR_MID' : 'Low, Mid',
+    'L_LOWR_HIGH' : 'Low, High',
+    'L_MIDR_LOW' : 'Mid, Low',
+    'L_MIDR_MID' : 'Mid, Mid',
+    'L_MIDR_HIGH' : 'Mid, High',
+    'L_HIGHR_LOW' : 'High, Low',
+    'L_HIGHR_MID' : 'High, Mid',
+    'L_HIGHR_HIGH' : 'High, High',
+    'AUTO_2' : 'Smart',
+    'POWER_2' : 'POWER',
+    'LONGPOWER' : 'LONG-POWER',
+}
+
 
 MAX_RETRIES = 5
 TRANSIENT_EXP = 5.0  # Report set temperature for 5 seconds.
@@ -178,7 +199,18 @@ class LGDevice(climate.ClimateDevice):
     @property
     def fan_modes(self):
         import wideq
-        return [v for k, v in FAN_MODES.items() if wideq.ACFanSpeed[k].value in self._ac.model.value('SupportWindStrength').options.values()]
+
+#       LOGGER.warning('fan modes in wideq %s:', self._device.model_id)
+#       for e in wideq.ACFanSpeed:
+#           LOGGER.warning('%s: %s', e, e.value)
+#       LOGGER.warning('fan modes in self:')
+#       for v in self._ac.model.value('SupportWindStrength').options.values():
+#           LOGGER.warning('%s', v)
+
+        if self._device.model_id[:11] == 'PAC_910604_':
+            return [v for k, v in FAN_MODES_DUAL.items()]
+        else:
+            return [v for k, v in FAN_MODES.items() if wideq.ACFanSpeed[k].value in self._ac.model.value('SupportWindStrength').options.values()]
 
     @property
     def hvac_mode(self):
@@ -191,7 +223,10 @@ class LGDevice(climate.ClimateDevice):
     @property
     def fan_mode(self):
         mode = self._state.fan_speed
-        return FAN_MODES[mode.name]
+        if self._device.model_id[:11] == 'PAC_910604_':
+            return FAN_MODES_DUAL[mode.name]
+        else:
+            return FAN_MODES[mode.name]
 
     def set_hvac_mode(self, hvac_mode):
         if hvac_mode == c_const.HVAC_MODE_OFF:
@@ -216,7 +251,10 @@ class LGDevice(climate.ClimateDevice):
         import wideq
 
         # Invert the fan modes mapping.
-        fan_modes_inv = {v: k for k, v in FAN_MODES.items()}
+        if self._device.model_id[:11] == 'PAC_910604_':
+            fan_modes_inv = {v: k for k, v in FAN_MODES_DUAL.items()}
+        else:
+            fan_modes_inv = {v: k for k, v in FAN_MODES.items()}
 
         mode = wideq.ACFanSpeed[fan_modes_inv[fan_mode]]
         LOGGER.info('Setting fan mode to %s', fan_mode)
