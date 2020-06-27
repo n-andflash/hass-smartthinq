@@ -1,6 +1,8 @@
 Home Assistant: LG SmartThinQ Component
 =======================================
 
+**듀얼팬 모델을 임시로 지원하기 위해 climate.py 파일을 수정한 버전입니다.**
+
 A [Home Assistant][hass] component for controlling/monitoring LG devices
 (currently HVAC & Dishwasher) via their SmartThinQ platform, based on
 [WideQ][].  The current version of the component requires Home Assistant 0.96
