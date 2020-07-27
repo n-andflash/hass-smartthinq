@@ -2,6 +2,7 @@ Home Assistant: LG SmartThinQ Component
 =======================================
 
 **듀얼팬 모델을 임시로 지원하기 위해 climate.py 파일을 수정한 버전입니다.**
+**Synology NAS에서 wideq 버전 문제가 발생하는 부분도 임시로 수정하였습니다.**
 
 A [Home Assistant][hass] component for controlling/monitoring LG devices
 (currently HVAC & Dishwasher) via their SmartThinQ platform, based on
