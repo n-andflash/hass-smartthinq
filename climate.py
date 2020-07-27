@@ -9,6 +9,7 @@ from homeassistant.components.climate import const as c_const
 from custom_components.smartthinq import (
     CONF_LANGUAGE, KEY_DEPRECATED_COUNTRY,
     KEY_DEPRECATED_LANGUAGE, KEY_DEPRECATED_REFRESH_TOKEN)
+from . import wideq
 
 REQUIREMENTS = ['wideq']
 
@@ -70,8 +71,6 @@ TEMP_MAX_C = 30
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
-    import wideq
-
     refresh_token = config.get(KEY_DEPRECATED_REFRESH_TOKEN) or \
         hass.data.get(CONF_TOKEN)
     country = config.get(KEY_DEPRECATED_COUNTRY) or \
@@ -91,7 +90,6 @@ def _ac_devices(hass, client, fahrenheit):
 
     Log errors for devices that can't be used for whatever reason.
     """
-    import wideq
 
     persistent_notification = hass.components.persistent_notification
 
@@ -119,7 +117,6 @@ class LGDevice(climate.ClimateEntity):
         self._attrs = {}
         self._has_power = "maybe"
 
-        import wideq
         self._ac = wideq.ACDevice(client, device)
         self._ac.monitor_start()
 
@@ -199,13 +196,10 @@ class LGDevice(climate.ClimateEntity):
 
     @property
     def hvac_modes(self):
-        import wideq
         return [v for k, v in MODES.items() if wideq.ACMode[k].value in self._ac.model.value('SupportOpMode').options.values()] + [c_const.HVAC_MODE_OFF]
 
     @property
     def fan_modes(self):
-        import wideq
-
 #       LOGGER.warning('fan modes in wideq %s:', self._device.model_id)
 #       for e in wideq.ACFanSpeed:
 #           LOGGER.warning('%s: %s', e, e.value)
@@ -244,8 +238,6 @@ class LGDevice(climate.ClimateEntity):
         if not self._state.is_on:
             self._ac.set_on(True)
 
-        import wideq
-
         # Invert the modes mapping.
         modes_inv = {v: k for k, v in MODES.items()}
 
@@ -255,8 +247,6 @@ class LGDevice(climate.ClimateEntity):
         LOGGER.info('Mode set.')
 
     def set_fan_mode(self, fan_mode):
-        import wideq
-
         # Invert the fan modes mapping.
         if self._device.model_id[:11] == 'PAC_910604_':
             fan_modes_inv = {v: k for k, v in FAN_MODES_DUAL.items()}
@@ -283,7 +273,6 @@ class LGDevice(climate.ClimateEntity):
     def check_power(self):
         """Poll for power consumption. If it fails once,
             assume it's not supported, and don't try again"""
-        import wideq
 
         if not self._has_power:
             return
@@ -302,8 +291,6 @@ class LGDevice(climate.ClimateEntity):
 
         Set the `_state` field to a new data mapping.
         """
-
-        import wideq
 
         LOGGER.info('Updating %s.', self.name)
         for iteration in range(MAX_RETRIES):

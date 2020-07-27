@@ -8,7 +8,7 @@ from custom_components.smartthinq import (
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_REGION, CONF_TOKEN
 
-import wideq
+from . import wideq
 from wideq import dishwasher
 
 ATTR_DW_STATE = 'state'

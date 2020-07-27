@@ -2,7 +2,7 @@
 Support for LG Smartthinq devices.
 """
 import logging
-import wideq
+from . import wideq
 
 import voluptuous as vol
 
