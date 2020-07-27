@@ -116,6 +116,8 @@ class LGDevice(climate.ClimateEntity):
         self._client = client
         self._device = device
         self._fahrenheit = fahrenheit
+        self._attrs = {}
+        self._has_power = "maybe"
 
         import wideq
         self._ac = wideq.ACDevice(client, device)
@@ -128,6 +130,10 @@ class LGDevice(climate.ClimateEntity):
         # store the timestamp for when we set this value.
         self._transient_temp = None
         self._transient_time = None
+
+    @property
+    def device_state_attributes(self):
+        return self._attrs
 
     @property
     def temperature_unit(self):
@@ -222,11 +228,12 @@ class LGDevice(climate.ClimateEntity):
 
     @property
     def fan_mode(self):
-        mode = self._state.fan_speed
-        if self._device.model_id[:11] == 'PAC_910604_':
-            return FAN_MODES_DUAL[mode.name]
-        else:
-            return FAN_MODES[mode.name]
+        if self._state:
+            mode = self._state.fan_speed
+            if self._device.model_id[:11] == 'PAC_910604_':
+                return FAN_MODES_DUAL[mode.name]
+            else:
+                return FAN_MODES[mode.name]
 
     def set_hvac_mode(self, hvac_mode):
         if hvac_mode == c_const.HVAC_MODE_OFF:
@@ -273,6 +280,23 @@ class LGDevice(climate.ClimateEntity):
             self._ac.set_celsius(temperature)
         LOGGER.info('Temperature set.')
 
+    def check_power(self):
+        """Poll for power consumption. If it fails once,
+            assume it's not supported, and don't try again"""
+        import wideq
+
+        if not self._has_power:
+            return
+
+        try:
+            power = self._ac.get_power()
+            if power:
+                self._attrs['power'] = power
+                self._has_power = True
+        except wideq.InvalidRequestError:
+            LOGGER.info('Power consumption not available.')
+            self._has_power = False
+
     def update(self):
         """Poll for updated device status.
 
@@ -295,6 +319,8 @@ class LGDevice(climate.ClimateEntity):
             except wideq.NotConnectedError:
                 LOGGER.info('Device not available.')
                 return
+
+            self.check_power()
 
             if state:
                 LOGGER.info('Status updated.')
